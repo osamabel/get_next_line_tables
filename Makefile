@@ -1,5 +1,5 @@
 CFLAG = -Wall -Wextra -Werror -g
-B_SIZE = -D BUFFER_SIZE=10000
+B_SIZE = -D BUFFER_SIZE=42
 NAME = get_library.a
 SRC = get_next_line.c get_next_line_utils.c
 

@@ -1,12 +1,12 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   get_util.c                                         :+:      :+:    :+:   */
+/*   get_next_line_utils.c                              :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: obelkhad <obelkhad@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/12/12 21:38:41 by obelkhad          #+#    #+#             */
-/*   Updated: 2021/12/17 21:36:17 by obelkhad         ###   ########.fr       */
+/*   Updated: 2021/12/19 16:03:56 by obelkhad         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,65 +26,84 @@ char	*ft_strdup(const char *s1)
 }
 
 
-char	*ft_strjoin(char **first, char **secend)
+char	*ft_strjoin(char **line, char **secend) // lost char = 13145465413 , line
 {
 	char	*temp;
 
-	if (!*first)
+	if (!*line && *secend) //NULL && "##"
 	{
-		*first = strdup(*secend);
+		*line = strdup(*secend);
 		free(*secend);
-		return (*secend);
+		*secend = NULL;
+		return (*line);
 	}
-	if (!*secend)
-		return (*first);
-	if (*first && *secend)
+	if (*line && *secend)
 	{
-		temp = *first;
-		*first = malloc(sizeof(char) * (strlen(*first) + strlen(*secend) + 1));
-		strncpy(*first, temp, strlen(temp));
-		strncpy(*first + strlen(temp), *secend, strlen(*secend) + 1);
+		temp = *line;
+		*line = malloc(sizeof(char) * (strlen(*line) + strlen(*secend) + 1));
+		strncpy(*line, temp, strlen(temp));
+		strncpy(*line + strlen(temp), *secend, strlen(*secend) + 1);
+		free(*secend);
+		*secend = NULL;
 		free(temp);
 	}
-	return (*first);
+	return (*line);
 }
 
 char	*read_and_store(int	fd, char **lost_chars)
 {
 	char	*line;
-	char	*buffer;
+	char	*buffer;//buffer[BUFFER_SIZE + 1];
 	char	*last_chars;
 	int		read_char;
 	size_t	check;
 
 	line = NULL;
-	buffer = (char *)malloc(sizeof(char) * (BUFFER_SIZE + 1));
 	check = BUFFER_SIZE;
 	while (check == BUFFER_SIZE)
 	{
+		buffer = (char *)malloc(sizeof(char) * (BUFFER_SIZE + 1));
 		read_char = read(fd, buffer, BUFFER_SIZE);
 		if (read_char <= 0)
 		{
-			free(buffer);
+			if (buffer)
+				free(buffer);
+			buffer = NULL;
+			if (!*lost_chars)
+				ft_strjoin(&line,lost_chars);
 			return (line);
 		}
-		buffer[BUFFER_SIZE] = '\0';
+		buffer[read_char] = '\0';
 		check = check_end_of_line(buffer);
-		if (check < BUFFER_SIZE)
+		if (check < BUFFER_SIZE)  //  check < strlen(buffer)
+		{
+			//if (*lost_chars)
+			ft_strjoin(&line,lost_chars);
 			ft_strsplit(buffer, &last_chars, lost_chars, check);
+			ft_strjoin(&line,&last_chars);
+		}
 		else
 			ft_strjoin(&line, &buffer);
 	}
-	ft_strjoin(&line, &last_chars);
-	free(buffer);
+	//ft_strjoin(&line, &last_chars);
+	if (buffer)
+		free(buffer);
+	buffer = NULL;
 	return (line);
 }
 
 void	ft_strsplit(char *buffer, char **last_chars, char **lost_chars, size_t check)
 {
-	*lost_chars = (char *)malloc(sizeof(char) * (strlen(buffer) - check));
-	strncpy(*lost_chars, buffer + check + 1, strlen(buffer) - check);
-	if (*lost_chars == '\0')
+	// buffer = \n , \0   [0 , 1]
+	// char	*line;
+	// line = malloc(sizeof(char) * 2);
+	// line[0] = 'M';
+	// line[1] = 'H';
+
+	*lost_chars = (char *)malloc(sizeof(char) * (strlen(buffer) - check)); // 42 - 0 = 42
+	strncpy(*lost_chars, buffer + check + 1, strlen(buffer) - check);  // 42
+	//strncpy(*lost_chars, line + check + 1, strlen(buffer) - check);  // 0 + 1
+	if (*(*lost_chars) == '\0')
 	{
 		free(*lost_chars);
 		*lost_chars = NULL;
@@ -96,8 +115,8 @@ void	ft_strsplit(char *buffer, char **last_chars, char **lost_chars, size_t chec
 	}
 	else
 	{
-		*last_chars = (char *)malloc(sizeof(char) * (check + 2));
-		strncpy(*last_chars, buffer ,check + 1);
-		*(*last_chars + check + 2) = '\0';
+		*last_chars = (char *)malloc(sizeof(char) * (check + 2)); //41 + 2 = 45
+		strncpy(*last_chars, buffer ,check + 1);                  //41 + 1 = 44
+		*(*last_chars + check + 1) = '\0';                        //41 + 
 	}
 }

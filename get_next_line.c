@@ -1,12 +1,12 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   get_next_line1.c                                   :+:      :+:    :+:   */
+/*   get_next_line.c                                    :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: obelkhad <obelkhad@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/12/10 14:20:15 by obelkhad          #+#    #+#             */
-/*   Updated: 2021/12/17 21:38:22 by obelkhad         ###   ########.fr       */
+/*   Updated: 2021/12/19 16:05:00 by obelkhad         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -51,23 +51,27 @@ char	*get_next_line(int fd)
 	static	char	*lost_chars;
 	char			*line;
 	char			*temp;
+	char			*temp1;
 	size_t			check;
 	size_t			len;
 
-	line = NULL;
 	if (lost_chars)
+		temp1 = lost_chars;
+	line = NULL;
+	if (lost_chars && check_end_of_line(lost_chars) < strlen(lost_chars))
 	{
 		check = check_end_of_line(lost_chars);
 		len = strlen(lost_chars);
 		if ( check < len)
 		{
-			line = (char *)malloc(sizeof(char) * (check + 2)); // 11
-			strncpy(line, lost_chars, check + 1); //10
-			line[check + 1] = '\0';   // 9 + 1 = 10
+			line = (char *)malloc(sizeof(char) * (check + 2)); // 0 + 2 = 2
+			strncpy(line, lost_chars, check + 1); // 0 + 1 = 1
+			line[check + 1] = '\0';   // 0 + 2 = 2
 			temp = lost_chars + check + 1;
 			lost_chars = (char *)malloc(sizeof(char) * (len - check));
 			strncpy(lost_chars, temp,len - check);
-			free(temp - check - 1);
+			free(temp1);
+			temp1 = NULL;
 		}
 		else if (check == len)
 		{
